@@ -13,7 +13,7 @@
     
     <ul>
         {% for product in products %}
-        <li>{{product}}</li>
+        <li>{{product.id}}  - {{product.customer.first_name}} - {{product.place_at}}</li>
         {% endfor %}
     </ul>
     
