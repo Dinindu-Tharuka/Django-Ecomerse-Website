@@ -1,11 +1,17 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.db.models import Q
-from store.models import Product
+from django.db.models import Q, F
+from store.models import Product, OrderItem
 
 def say_hello(request):
 
-    product = Product.objects.filter(Q(unit_price__gt=3000) | Q(unit_price__lt=4000))[:50]
-    count_product = product.count()
+    orderitem_set = OrderItem.objects.values('product__title').distinct().order_by('product__title')
 
-    return render(request, 'hello.html', {'products' : list(product), 'count':count_product})
+    # query_set = OrderItem.objects.values('product_id').distinct()
+
+    # query_set_product = Product.objects.filter(id__in=query_set)
+    
+    count_product = orderitem_set.count()
+
+
+    return render(request, 'hello.html', {'products' : list(orderitem_set), 'count':count_product})
