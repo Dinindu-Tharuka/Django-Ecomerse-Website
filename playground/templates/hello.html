@@ -8,14 +8,21 @@
 </head>
 <body>
 
-    <h1>Count : {{count}}</h1>
+    <!-- <h1>Count : {{count}}</h1> -->
 
     
-    <ul>
+    <!-- <ul>
         {% for product in products %}
         <li>{{product.id}}  - {{product.customer.first_name}} - {{product.place_at}}</li>
         {% endfor %}
+    </ul> -->
+    
+    <ul>
+        {% for product in products %}
+        <li>{{ product.tag.label}}</li>
+        {% endfor %}
     </ul>
+
     
 </body>
 </html>

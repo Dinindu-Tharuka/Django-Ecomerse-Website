@@ -1,16 +1,21 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.db.models import Q, F
-from store.models import Product, OrderItem, Order
+from django.db.models import Q, F, Value, Func, ExpressionWrapper, DecimalField
+from django.db.models import Max
+from store.models import Product, OrderItem, Order, Customer
+from django.contrib.contenttypes.models import ContentType
+from tag.models import TagItem
+
 
 def say_hello(request):
 
-    query_set = Order.objects.select_related('customer').prefetch_related('orderitem_set')\
-                .order_by('place_at')[:5]
+    content_model = ContentType.objects.get_for_model(Product)
+
+    query_set = TagItem.objects.select_related('tag').filter(
+        content_type = content_model,
+        object_id = 3
+    )
     
 
-    count = query_set.count()
-    
-
-
-    return render(request, 'hello.html', {'products' : list(query_set), 'count':count})
+    # count = query_set.count()
+    return render(request, 'hello.html', {'products' : query_set})
