@@ -5,7 +5,7 @@ from django.db.models import Count, Func,F, Value
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Product, Collection, Customer, Order, OrderItem
+from .models import Product, Collection, Customer, Order, OrderItem, Promotion
 from urllib.parse import urlencode
 
 
@@ -170,6 +170,10 @@ class OrderItemAdmin(admin.ModelAdmin):
         return super().get_queryset(request).annotate(
             products=Count('product')
         )
+    
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    search_fields = ['description']
     
     
 
