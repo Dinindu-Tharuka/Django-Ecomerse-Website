@@ -5,7 +5,7 @@ from django.db.models import Count, Func,F, Value
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Product, Collection, Customer, Order
+from .models import Product, Collection, Customer, Order, OrderItem
 from urllib.parse import urlencode
 
 
@@ -33,10 +33,17 @@ class ProductPriceFilter(admin.SimpleListFilter):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    ###### Forms
+    prepopulated_fields = {
+        'slug':['title']
+    }
+    autocomplete_fields = ['collection']
+
     actions = ['clear_price']
     list_per_page = 10
     list_display = ['title', 'unit_price', 'price_range', 'collection']
     list_filter = ['collection', ProductPriceFilter]
+    
 
 
     @admin.display(ordering='unit_price')
@@ -59,6 +66,7 @@ class ProductAdmin(admin.ModelAdmin):
 class CollectionAdmin(admin.ModelAdmin):
     list_per_page = 10
     list_display = ['title', 'product_count']
+    search_fields = ['title']
 
     def product_count(self, collection):
 
@@ -78,20 +86,42 @@ class CollectionAdmin(admin.ModelAdmin):
         return super().get_queryset(request).annotate(
             product_count = Count('product')
         )
+    
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_per_page = 10
+    list_display = ['customer_name', 'membership']
+    list_editable = ['membership']
+    list_filter = ['membership']    
     ordering = ['first_name', 'last_name']
     search_fields = ['first_name__istartswith', 'last_name__istartswith']
+
+    def customer_name(self, customer):
+        return customer.full_name
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(
+            full_name=Func(F('first_name'), Value(' '), F('last_name'), function='CONCAT')
+        )
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_per_page = 10
-    list_display = ['place_at', 'customer_name']
+    list_display = [ 'customer_name', 'products', 'place_at' ]
     list_select_related = ['customer']
     
+    @admin.display(ordering='products')
+    def products(self, order):    
+
+        url = (reverse('admin:store_orderitem_changelist')
+               + '?'
+               + urlencode({
+                   'order__id':order.id
+               }))   
+
+        return format_html('<a href="{}">{}</a>', url, order.products )    
     
 
     def customer_name(self, order):
@@ -99,7 +129,46 @@ class OrderAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(
-            customer_name = Func(F('customer__first_name'), Value(' '), F('customer__last_name'), function='CONCAT')
+            customer_name = Func(F('customer__first_name'), Value(' '), F('customer__last_name'), function='CONCAT'),
+            products= Count('orderitem')
+        )
+    
+class OrderItemFilter(admin.SimpleListFilter):
+    title = 'Item_Range'
+    parameter_name = 'itemrange'
+
+    LOW = '<300'
+    MIDDLE = '<500'
+    HIGH = '>500'
+
+    def lookups(self, request: Any, model_admin: Any) -> List[Tuple[Any, str]]:
+        return [
+            (self.LOW, 'Low'),
+            (self.MIDDLE, 'Middle'),
+            (self.HIGH, 'High')
+        ]
+    
+    def queryset(self, request: Any, queryset: QuerySet[Any]) -> QuerySet[Any] | None:
+        if self.value() == self.LOW:
+            return queryset.filter(quantity__lte=300)
+        elif self.value() == self.MIDDLE:
+            return queryset.filter(quantity__lte=500, quantity__gt=300)
+        elif self.value() == self.HIGH:
+            return queryset.filter(quantity__gt=500)
+
+    
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = [ 'product', 'quantity']
+    list_filter = [OrderItemFilter]
+    list_per_page = 15
+
+    def products(self, orderitem):
+        return orderitem.products
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(
+            products=Count('product')
         )
     
     
