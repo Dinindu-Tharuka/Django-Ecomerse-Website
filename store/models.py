@@ -6,6 +6,9 @@ class Promotion(models.Model):
     discount = models.FloatField()
 
     ###
+
+    def __str__(self) -> str:
+        return self.description
     
 
 class Collection(models.Model):
@@ -17,6 +20,8 @@ class Collection(models.Model):
 
     def __str__(self) -> str:
         return self.title
+    
+
 
 
 class Product(models.Model):

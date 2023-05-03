@@ -7,6 +7,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 class Tag(models.Model):
     label = models.TextField(max_length=255)
 
+    def __str__(self) -> str:
+        return self.label
+
 class TagItem(models.Model):
 
     ###
@@ -16,4 +19,6 @@ class TagItem(models.Model):
 
     ###
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+    
 

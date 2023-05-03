@@ -1,11 +1,13 @@
 from typing import Any, List, Optional, Tuple
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models.query import QuerySet
 from django.db.models import Count, Func,F, Value
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse
 from .models import Product, Collection, Customer, Order, OrderItem, Promotion
+from tag.models import TagItem
 from urllib.parse import urlencode
 
 
@@ -30,6 +32,11 @@ class ProductPriceFilter(admin.SimpleListFilter):
             return queryset.filter(unit_price__lte=4000, unit_price__gt=2000)
         elif self.value() == self.GREATERTHAN_4000:
             return queryset.filter(unit_price__gt=4000)
+        
+class TagInline(GenericTabularInline):
+    autocomplete_fields = ['tag']
+    model = TagItem
+    extra = 0
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -38,11 +45,14 @@ class ProductAdmin(admin.ModelAdmin):
         'slug':['title']
     }
     autocomplete_fields = ['collection']
+    inlines = [TagInline]
 
     actions = ['clear_price']
     list_per_page = 10
     list_display = ['title', 'unit_price', 'price_range', 'collection']
     list_filter = ['collection', ProductPriceFilter]
+    search_fields = ['title']
+
     
 
 
@@ -62,11 +72,16 @@ class ProductAdmin(admin.ModelAdmin):
             f'{no_of_product} products you have updated.'
         )
 
+class ProductInline(admin.StackedInline):
+    model=Product
+    extra = 0
+
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_per_page = 10
     list_display = ['title', 'product_count']
     search_fields = ['title']
+    inlines = [ProductInline]
 
     def product_count(self, collection):
 
@@ -106,11 +121,22 @@ class CustomerAdmin(admin.ModelAdmin):
         )
 
 
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+
+    autocomplete_fields = ['product']
+    extra = 0
+
+
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['customer']
     list_per_page = 10
     list_display = [ 'customer_name', 'products', 'place_at' ]
     list_select_related = ['customer']
+    inlines= [OrderItemInline]
     
     @admin.display(ordering='products')
     def products(self, order):    
