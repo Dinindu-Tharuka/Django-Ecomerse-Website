@@ -84,7 +84,6 @@ class CollectionAdmin(admin.ModelAdmin):
     inlines = [ProductInline]
 
     def product_count(self, collection):
-
        
 
         url = (reverse('admin:store_product_changelist')
