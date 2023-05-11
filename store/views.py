@@ -12,7 +12,7 @@ from .models import Product, Collection
 
 class ProductList(ListCreateAPIView):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer   
+    serializer_class = ProductSerializer
     
 class ProductDetails(APIView):   
     
@@ -41,6 +41,9 @@ class ProductDetails(APIView):
 class CollectionList(ListCreateAPIView):
     queryset = Collection.objects.annotate(product_count=Count('product')).all()
     serializer_class = CollectionSerializer 
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class CollectionDetails(APIView):
