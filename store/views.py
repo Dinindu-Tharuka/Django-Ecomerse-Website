@@ -6,23 +6,27 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from .serializers import ProductSerializer, CollectionSerializer
-from .models import Product, Collection, OrderItem
+from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
+from .models import Product, Collection, OrderItem, Reviews
 
 ######### Product ############
 
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer 
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        collection_id = self.request.query_params.get('collection_id')
+        if collection_id is not None:
+            queryset = Product.objects.filter(collection_id=collection_id).all()
+        return queryset
 
     def destroy(self, request, *args, **kwargs):
         
         if OrderItem.objects.filter(product__id=kwargs['pk']).count() > 0:
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         
-        return super().destroy(request, *args, **kwargs)  
-
-     
+        return super().destroy(request, *args, **kwargs)     
     
     
 ############## Collection End Point ###########
@@ -36,7 +40,19 @@ class CollectionViewSet(ModelViewSet):
         if Product.objects.filter(collection__id=kwargs['pk']).count() > 0:
             return Response({'error': "You can't delete this collection, because this collection has some products."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().destroy(request, *args, **kwargs)
+    
 
+class ReviewViewSet(ModelViewSet):
+    
+    serializer_class = ReviewSerializer    
+    
+    def get_queryset(self):
+        return Reviews.objects.filter(product__id=self.kwargs['product_pk'])
+    
+    def get_serializer_context(self):
+        return {
+            'product_id':self.kwargs['product_pk']
+        }
     
 
 

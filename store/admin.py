@@ -82,6 +82,7 @@ class CollectionAdmin(admin.ModelAdmin):
     list_display = ['title', 'product_count']
     search_fields = ['title']
     inlines = [ProductInline]
+    autocomplete_fields = ['featured_product']
 
     def product_count(self, collection):
        

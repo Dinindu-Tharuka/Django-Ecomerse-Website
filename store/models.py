@@ -16,7 +16,7 @@ class Collection(models.Model):
     
 
     ###
-    featured_product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, related_name='+')
+    featured_product = models.ForeignKey('Product',on_delete=models.SET_NULL, null=True, related_name='+')
 
     def __str__(self) -> str:
         return self.title
@@ -107,4 +107,10 @@ class Address(models.Model):
     city = models.CharField(max_length=255)    
     ###
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+
+class Reviews(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    date = models.DateField(auto_now_add=True)
 
