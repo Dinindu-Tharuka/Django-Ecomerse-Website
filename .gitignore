@@ -1,0 +1,25 @@
+#vs code
+
+.vscode/
+
+#store
+
+store/__pycache__/
+store/migrations/
+
+# playground
+
+playground/__pycache__/
+playground/migrations/
+
+# storefront
+
+storefront/__pycache__/
+
+# tag
+
+tag/__pycache__/
+tag/migrations/
+
+#sqlite
+db.sqlite3
