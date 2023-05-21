@@ -3,12 +3,13 @@ from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, ListModelMixin
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
-from .models import Product, Collection, OrderItem, Reviews
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, CartItemSerializer
+from .models import Product, Collection, OrderItem, Reviews, Cart, CartItem
 from .filters import ProductPriceFilter
 from .pagination import DefaultPagination
 
@@ -63,6 +64,19 @@ class ReviewViewSet(ModelViewSet):
         return {
             'product_id':self.kwargs['product_pk']
         }
+    
+class CartViewSet(GenericViewSet, CreateModelMixin, RetrieveModelMixin):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+
+
+
+
+
+
+    
+
     
 
 
