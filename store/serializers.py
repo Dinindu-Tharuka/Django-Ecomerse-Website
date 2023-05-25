@@ -29,6 +29,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         product_id = self.context['product_id']
+        print(validated_data)
         return Reviews.objects.create(product_id=product_id, **validated_data)
     
 class SimpleProductSerializer(serializers.ModelSerializer):
@@ -48,7 +49,31 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def get_total_price(self, cart_item:CartItem):
         return cart_item.product.unit_price * cart_item.quantity   
-   
+    
+class SimpleCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product_id', 'quantity']
+
+    product_id = serializers.IntegerField()
+
+    def save(self, **kwargs):
+        
+        product_id = self.validated_data['product_id']
+        quantity = self.validated_data['quantity']
+        cart_id = self.context['cart_id']
+
+        try:
+            cartitem = CartItem.objects.get(cart_id=cart_id, product_id=product_id)
+            cartitem.quantity += quantity
+            cartitem.save()
+            self.instance = cartitem
+        except CartItem.DoesNotExist:
+            self.instance = CartItem.objects.create(cart_id=cart_id, **self.validated_data)
+
+        return self.instance
+            
+
     
     
 class CartSerializer(serializers.ModelSerializer):

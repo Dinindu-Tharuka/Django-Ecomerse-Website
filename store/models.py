@@ -103,7 +103,7 @@ class CartItem(models.Model):
     quantity = models.PositiveSmallIntegerField()
     ###
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='cartitem')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='cartitem')
 
     class Meta:
         unique_together = [['cart', 'product']]
