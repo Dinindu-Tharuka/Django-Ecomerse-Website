@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Tuple
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models.query import QuerySet
@@ -6,9 +6,12 @@ from django.db.models import Count, Func,F, Value
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Product, Collection, Customer, Order, OrderItem, Promotion
-from tag.models import TagItem
+from .models import Product, Collection, Customer, Order, OrderItem, Promotion, Reviews
 from urllib.parse import urlencode
+
+@admin.register(Reviews)
+class ReviewAdmin(admin.ModelAdmin):
+    pass
 
 
 class ProductPriceFilter(admin.SimpleListFilter):
@@ -33,10 +36,7 @@ class ProductPriceFilter(admin.SimpleListFilter):
         elif self.value() == self.GREATERTHAN_4000:
             return queryset.filter(unit_price__gt=4000)
         
-class TagInline(GenericTabularInline):
-    autocomplete_fields = ['tag']
-    model = TagItem
-    extra = 0
+
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -44,9 +44,8 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         'slug':['title']
     }
-    autocomplete_fields = ['collection']
-    inlines = [TagInline]
-
+    autocomplete_fields = ['collection']  
+    
     actions = ['clear_price']
     list_per_page = 10
     list_display = ['title', 'unit_price', 'price_range', 'collection']
@@ -109,15 +108,15 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ['customer_name', 'membership']
     list_editable = ['membership']
     list_filter = ['membership']    
-    ordering = ['first_name', 'last_name']
-    search_fields = ['first_name__istartswith', 'last_name__istartswith']
+    ordering = ['user__first_name', 'user__last_name']
+    search_fields = ['user__first_name__istartswith', 'user__last_name__istartswith']
 
     def customer_name(self, customer):
         return customer.full_name
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(
-            full_name=Func(F('first_name'), Value(' '), F('last_name'), function='CONCAT')
+            full_name=Func(F('user__first_name'), Value(' '), F('user__last_name'), function='CONCAT')
         )
 
 
