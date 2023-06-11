@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'playground',
+    'store_custom',
     'store',
     'likes',
     'tag',
@@ -62,6 +64,8 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+AUTH_USER_MODEL = 'store_custom.User'
 
 
 ROOT_URLCONF = 'storefront.urls'
@@ -94,7 +98,8 @@ DATABASES = {
         'NAME': 'storefront_new',
         'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': '1234'
+        'PASSWORD': '1234',
+        'PORT':'3310'
     }
 }
 
@@ -139,3 +144,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING':False,
+    
+}
